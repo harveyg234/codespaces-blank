@@ -12,6 +12,7 @@ def main_menu():
         print("")
         print("--------------------- Main Menu --------------------- ")
         print("1. Total sales by product")
+        print("2. Total sales by category")
 
         choice = input('Enter your number selection here: ')
 
@@ -25,7 +26,7 @@ def main_menu():
 #Generates submenu of available product codes and allows user to select a product to view
 def get_product_id ():
 
-    df = pd.read_csv("Task4a_RetailX_data.csv")
+    df = pd.read_csv("/workspaces/codespaces-blank/task4arevamp/20251128_Digital_DSD_AdSAM_Core_ESP_Task_4a_RetailX_data_V0.1.csv")
 
     product_codes = df["Product ID"].unique().tolist()
 
@@ -76,7 +77,7 @@ def get_date(start_end):
 
 #extracts data based on product ID within a user specified date range.
 def get_data_by_ID_and_date(product_id, start_date, end_date):
-    all_data = pd.read_csv("Task4a_RetailX_data.csv")
+    all_data = pd.read_csv("/workspaces/codespaces-blank/task4arevamp/20251128_Digital_DSD_AdSAM_Core_ESP_Task_4a_RetailX_data_V0.1.csv")
     product_data = all_data.loc[all_data["Product ID"] == product_id].copy()
 
     product_data["Date"]= pd.to_datetime(product_data["Date"], format="%d/%m/%Y", errors="raise")
@@ -87,16 +88,64 @@ def get_data_by_ID_and_date(product_id, start_date, end_date):
     extracted_data = product_data.loc[date_range]
 
 
-
+    print(extracted_data)
     return extracted_data
 
 #generates a total of the number of items sold for the extracted data
 def calculate_total_sale (date_ID, product_id, start_date, end_date):
+    #print(date_ID)
     total_sales = date_ID["Qty Sold"].sum()
     print('The total number of sales for product {}, between {} and {} was: {}'.format(product_id, start_date, end_date, total_sales))
 
 
-main_menu_choice = main_menu()
+###############
+
+def category_menu():
+    df = pd.read_csv("/workspaces/codespaces-blank/task4arevamp/20251128_Digital_DSD_AdSAM_Core_ESP_Task_4a_RetailX_data_V0.1.csv")
+    category_list = df["Category"].unique().tolist()
+
+    print("-"*66)
+    print("---------- RetailX Sales Analysis Module ------------- ")
+    print("-"*66)
+    print("")
+    print("--------------------- Main Menu --------------------- ")
+    print("Select a category:")
+    for i in range(len(category_list)):
+        print(i+1, " ", category_list[i])
+    
+    selection = input('Enter your number selection here: ')
+    if selection.isdigit():
+        selection = int(selection)
+        
+    else:
+        print("Sorry, you did not enter a valid number") 
+
+    category_ID = category_list[selection -1]
+    print("You have selected category:",category_ID)
+    
+    all_data = pd.read_csv("/workspaces/codespaces-blank/task4arevamp/20251128_Digital_DSD_AdSAM_Core_ESP_Task_4a_RetailX_data_V0.1.csv")
+    category_data = all_data.loc[all_data["Category"] == category_ID].copy()
+
+    #print(category_data)
+
+    # --- FIX START ---
+    # Ensure the Date column is converted to datetime objects
+    category_data["Date"] = pd.to_datetime(category_data["Date"], format="%d/%m/%Y")
+    
+    # Sort by date to ensure the weekly output is in chronological order
+    category_data = category_data.sort_values("Date")
+
+    # Grouping by the 'Date' column with weekly frequency 'W'
+    weekly_sales = category_data.groupby(pd.Grouper(key='Date', freq='W'))['Qty Sold'].sum().reset_index()
+    # --- FIX END ---
+
+    print("\nWeekly Quantity Sold for {}:".format(category_ID))
+    print(weekly_sales) 
+
+
+#############################
+
+main_menu_choice = main_menu()                                                                                                                                                                           
 
 if main_menu_choice == 1:
     product_id = get_product_id()
@@ -107,3 +156,5 @@ if main_menu_choice == 1:
 
 
 
+elif main_menu_choice == 2:
+    category_menu()
